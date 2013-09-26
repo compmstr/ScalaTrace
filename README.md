@@ -9,10 +9,10 @@ Example code bases:
 ## TODO
 
 * Add multisampling for focus and AA
-* Separate out Shader functionality
-	* Make Lambert Shader
+* Separate out Shader functionality [PARTIAL]
+	* Make Lambert Shader [DONE]
 	* Make Specular Shader
-	* Make Reflective Shader
+	* Make Reflective Shader [IN PROGRESS]
 	* Make Checkerboard Shader
 * Add Other Object Types
 	* Add Plane
