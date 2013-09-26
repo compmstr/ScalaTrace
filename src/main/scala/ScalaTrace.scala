@@ -5,19 +5,22 @@ import java.awt.{Color, Graphics}
 import javax.swing.{JFrame, JPanel}
 
 class Light(val loc: V3, val power: Double)
-class Scene(val eye: V3, val lights: List[Light], val objects: List[WorldObject], val sky: V3, val ambient: V3){
+class Scene(val eye: V3, val lights: List[Light], val objects: List[WorldObject], val sky: V3,
+            val ambient: V3, val samples: Int, val jitter: Double, val jitterDist: Double,
+            val recursion: Int = 0){
   /**
     * allows you to copy the scene, setting named parameters differently
     */
   def copyWith(eye: V3 = eye, lights: List[Light] = lights, objects: List[WorldObject] = objects,
-    sky: V3 = sky, ambient: V3 = ambient){
-    new Scene(eye, lights, objects, sky, ambient)
+               sky: V3 = sky, ambient: V3 = ambient, samples: Int = samples, jitter: Double = jitter,
+               jitterDist: Double = jitterDist, recursion: Int = recursion): Scene = {
+    new Scene(eye, lights, objects, sky, ambient, samples, jitter, jitterDist, recursion)
   }
 }
 
 case class HitInfo(intersect: V3, obj: WorldObject, ray: V3)
 
-class ScalaTrace(scene: Scene, recursion: Int = 0){
+class ScalaTrace(scene: Scene){
 	def firstHit(origin: V3, ray: V3): Option[HitInfo] = {
 		def hitsFolder(acc: List[HitInfo], obj: WorldObject)={
 			val intersect = obj.intersect(origin, ray)
@@ -60,7 +63,7 @@ class ScalaTrace(scene: Scene, recursion: Int = 0){
 		val ray = (V3(x, y, 0) - scene.eye).norm
 		sendRay(scene.eye, ray)
 	}
-	
+
 	def rayTrace(w: Int, h: Int): BufferedImage = {
     val start = System.currentTimeMillis
 		val img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
@@ -88,14 +91,17 @@ object ScalaTrace {
     val greenShader = LambertShader(Util.COLOR_GREEN)
     val redShader = LambertShader(Util.COLOR_RED)
     val blueShader = LambertShader(Util.COLOR_BLUE)
-		val scene1 = new Scene(V3(150, 150, 200),
-													 List[Light](new Light(V3(-600, 150, -400), 0.8)),
-													 List[WorldObject](
+    val whiteShader = LambertShader(Util.COLOR_WHITE)
+		val scene1 = new Scene(eye = V3(150, 150, 200),
+													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
+													 objects = List[WorldObject](
                              new Sphere(V3(0, 150, -500), 100, List(redShader)),
-                             new Sphere(V3(100, 150, -400), 100, List(greenShader)),
-                             new Sphere(V3(200, 150, -300), 100, List(blueShader))
+                             new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
+                             new Sphere(V3(-200, 150, -400), 100, List(new ReflectiveShader(0.85, 4))),
+                             new Sphere(V3(150, 150, -300), 100, List(whiteShader))
 													 ),
-													 V3(0.0, 0.0, 0.5), V3(0.1, 0.1, 0.1))
+													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1),
+                           samples = 8, jitter = 0.1, jitterDist = 0.0)
 		val img = new ScalaTrace(scene1).rayTrace(300, 300)
 		viewImage(img)
 	}

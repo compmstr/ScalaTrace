@@ -19,15 +19,16 @@ case class LambertShader(color: V3) extends Shader{
 }
 
 case class ReflectiveShader(amount: Double, maxBounces: Int = 1) extends Shader{
-  private def reflectRay(incoming: V3, normal: V3){
-    incoming - (n * ((incoming dot normal) * 2))
+  private def reflectRay(incoming: V3, normal: V3) = {
+    incoming - (normal * ((incoming dot normal) * 2))
   }
   override def getColor(scene: Scene, hit: HitInfo): V3 = {
     if(scene.recursion >= maxBounces){
-      scene.ambient
+      scene.sky
     }else{
       val newRay = reflectRay(hit.ray, hit.obj.normal(hit.intersect))
-      new ScalaTrace(scene, scene.recursion + 1).sendRay(hit.intersect, newRay)
+      val newColor = new ScalaTrace(scene.copyWith(recursion = scene.recursion + 1)).sendRay(hit.intersect, newRay)
+      (newColor * (1.0 / math.pow(2, scene.recursion))) * amount
     }
   }
 }
