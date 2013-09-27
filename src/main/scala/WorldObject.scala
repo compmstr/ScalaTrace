@@ -20,10 +20,14 @@ class Sphere(val center: V3, val radius: Double, override val shaders: List[Shad
     val c = (originToCenter dot originToCenter) - Util.square(radius)
     val n = Util.minRoot(a, b, c)
     if(!n.isEmpty){
-      Some[V3](
-        V3(origin.x + (ray.x * n.get),
-          origin.y + (ray.y * n.get),
-          origin.z + (ray.z * n.get)))
+      if(n.get > 0){
+        Some[V3](
+          V3(origin.x + (ray.x * n.get),
+            origin.y + (ray.y * n.get),
+            origin.z + (ray.z * n.get)))
+      }else{
+        None
+      }
     }else{
       None
     }

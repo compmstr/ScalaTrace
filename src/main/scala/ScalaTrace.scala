@@ -34,7 +34,7 @@ class ScalaTrace(scene: Scene){
 		val objects = scene.objects
 		val hits = objects.foldLeft(List[HitInfo]())(hitsFolder)
 		if(hits.length != 0){
-			Some(hits.sortWith((_.intersect.dist(origin) < _.intersect.dist(origin)))(0))
+			Some(hits.sortWith(_.intersect.dist(origin) < _.intersect.dist(origin))(0))
 		}else{
 			None
 		}
@@ -42,19 +42,12 @@ class ScalaTrace(scene: Scene){
 
 	
 	def sendRay(origin: V3, ray: V3): V3 = {
+    //println("sendRay origin: " + origin + " ray: " + ray)
 		val hit = firstHit(origin, ray)
 		if(hit.isEmpty){
 			scene.sky
 		}else{
       hit.get.obj.colorAt(scene, hit.get) + scene.ambient
-      /*
-			def lightToColor(hit: HitInfo, light: Light): V3 = {
-        val HitInfo(loc, obj, ray) = hit
-				(obj.colorAt(loc) * light.power) * lambert(obj, loc, loc - light.loc)
-			}
-			scene.lights.map(lightToColor(hit.get,_))
-			.foldRight(V3(0,0,0))(_+_) + scene.ambient
-			*/
 		}
 	}
 	
@@ -92,18 +85,21 @@ object ScalaTrace {
     val redShader = LambertShader(Util.COLOR_RED)
     val blueShader = LambertShader(Util.COLOR_BLUE)
     val whiteShader = LambertShader(Util.COLOR_WHITE)
+    val greyShader = LambertShader(Util.COLOR_GREY)
 		val scene1 = new Scene(eye = V3(150, 150, 200),
 													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
 													 objects = List[WorldObject](
                              new Sphere(V3(0, 150, -500), 100, List(redShader)),
                              new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
-                             new Sphere(V3(-200, 150, -400), 100, List(new ReflectiveShader(0.85, 4))),
+                             new Sphere(V3(-100, 150, -400), 100, List(greyShader, new ReflectiveShader(0.85, 4))),
                              new Sphere(V3(150, 150, -300), 100, List(whiteShader))
 													 ),
 													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1),
                            samples = 8, jitter = 0.1, jitterDist = 0.0)
 		val img = new ScalaTrace(scene1).rayTrace(300, 300)
 		viewImage(img)
+    val trace = new ScalaTrace(scene1)
+    println(trace.colorAt((50, 150)))
 	}
 	
 	def viewImage(img: BufferedImage) = {
