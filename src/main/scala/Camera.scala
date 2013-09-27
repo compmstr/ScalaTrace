@@ -42,7 +42,7 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     loc + (orientation * (-origDist))
   }
   protected def calcPixelSteps(): (Double, Double) = {
-    val xStep = width / imageSize._1
+    val xStep = width / (imageSize._1 - 1)
     val yStep = xStep * invAspectRatio
     (xStep, yStep)
   }
