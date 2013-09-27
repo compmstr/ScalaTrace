@@ -63,8 +63,8 @@ object ScalaTrace {
 													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
 													 objects = List[WorldObject](
                              new Sphere(V3(0, 150, -500), 100, List(redShader)),
-                             //new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
-                             new Sphere(V3(100, 150, -400), 100, List(greenShader)),
+                             new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
+                             //new Sphere(V3(100, 150, -400), 100, List(greenShader)),
                              new Sphere(V3(-200, 150, -400), 100, List(greyShader, new ReflectiveShader(0.85, 4))),
                              new Sphere(V3(150, 150, -300), 100, List(whiteShader))
 													 ),
