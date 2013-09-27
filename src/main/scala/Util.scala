@@ -1,5 +1,3 @@
-package main.scala
-
 object Util{
 	def square(x: Double) = x * x
 	def doubleToColor(f: Double): Float = math.min(1, math.max(0, f)).asInstanceOf[Float]

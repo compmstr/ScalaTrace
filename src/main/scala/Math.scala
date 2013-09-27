@@ -1,5 +1,3 @@
-package main.scala
-
 case class V3(val x: Double, val y: Double, val z: Double){
 	def parts() = List(x,y,z)
 	def +(other: V3) = {

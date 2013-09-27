@@ -1,5 +1,3 @@
-package main.scala
-
 abstract class WorldObject(val shaders: List[Shader]){
   def normal(point: V3): V3
   def intersect(origin: V3, Ray: V3): Option[V3]

@@ -1,5 +1,3 @@
-package main.scala
-
 abstract class Shader(){
   def getColor(scene: Scene, hit: HitInfo): V3
   protected def isInShadowForLight(hit: HitInfo, light: Light): Boolean = {
