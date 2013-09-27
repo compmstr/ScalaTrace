@@ -2,7 +2,12 @@ package main.scala
 
 object Util{
 	def square(x: Double) = x * x
-	def doubleToColorFloat(f: Double): Float = math.min(1, math.max(0, f)).asInstanceOf[Float]
+	def doubleToColor(f: Double): Float = math.min(1, math.max(0, f)).asInstanceOf[Float]
+  def colorClamp(color: V3): V3 = {
+    V3(doubleToColor(color.x),
+      doubleToColor(color.y),
+      doubleToColor(color.z))
+  }
 	def minRoot(a: Double, b: Double, c: Double): Option[Double] = {
 		if(a == 0){
 			Some[Double](-c / b)

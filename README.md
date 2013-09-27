@@ -8,12 +8,12 @@ Example code bases:
 
 ## TODO
 
+* Add Shadows [DONE]
 * Add multisampling for focus and AA
 * Separate out Shader functionality [PARTIAL]
 	* Make Lambert Shader [DONE]
 	* Make Specular Shader
-	* Make Reflective Shader [IN PROGRESS]
-	    * Currently, with multiple reflectors and recursions >= 2, shows phantom objects
+	* Make Reflective Shader [DONE]
 	* Make Checkerboard Shader
 * Add Other Object Types
 	* Add Plane

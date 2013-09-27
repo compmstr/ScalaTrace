@@ -4,7 +4,7 @@ abstract class WorldObject(val shaders: List[Shader]){
   def normal(point: V3): V3
   def intersect(origin: V3, Ray: V3): Option[V3]
   def colorAt(scene: Scene, hit: HitInfo): V3 = {
-    shaders.map(_.getColor(scene, hit)).foldLeft(Util.COLOR_BLACK)(_ + _)
+    shaders.map(_.getColor(scene, hit)).map(Util.colorClamp).foldLeft(Util.COLOR_BLACK)(_ + _)
   }
   def shaderLocAt(loc: V3): (Double, Double)
 }
