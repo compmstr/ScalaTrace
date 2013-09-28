@@ -38,7 +38,7 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     imageSize._1 / imageSize._2
   }
   protected def calcOrigin(): V3 = {
-    val origDist = math.tan(fov / 2) / (imageSize._1 / 2)
+    val origDist = (imageSize._1 / 2) / math.tan(fov / 2)
     loc + (orientation * (-origDist))
   }
   protected def calcPixelSteps(): (Double, Double) = {
@@ -69,13 +69,15 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     println("Left: " + left)
 
     //TODO: all until here appear to be correct, however the actual coords generated are off
+    //TODO: Probably need to use matrix rotation to get this to work properly
     (for(x <- 0 until imageSize._1; y <- 0 until imageSize._2) yield{
     //(for(deltaX <- (0.0 until width by xPixelStep); deltaY <- (0.0 until height by yPixelStep)) yield {
       val deltaX = x * xPixelStep
       val deltaY = y * yPixelStep
-      println("(x, y) -> " + (x, y) + " -- Deltas: " + (deltaX, deltaY))
+      //println("(x, y) -> " + (x, y) + " -- Deltas: " + (deltaX, deltaY))
+      //println("ray: " + ( origin - ((left + (right * deltaX)) + (top - (up * deltaY)))).norm)
       ((x, y), (left + (right * deltaX)) + (top - (up * deltaY)))
-    }).map((coord: ((Int, Int), V3)) => (coord._1 , (coord._2 - origin).norm))
+    }).map((coord: ((Int, Int), V3)) => (coord._1 , (orientation - coord._2).norm))
     .foldLeft(Map[(Int, Int), V3]())(_ + _)
 
     //return Map[(Double, Double), V3]()

@@ -12,10 +12,13 @@ class Sphere(val center: V3, val radius: Double, override val shaders: List[Shad
     (center - point).norm
   }
   def intersect(origin: V3, ray: V3): Option[V3] = {
-    val a = ray dot ray
-    val b = 2 * ((origin - center) dot ray)
-    val originToCenter = origin - center
-    val c = (originToCenter dot originToCenter) - Util.square(radius)
+    val V = ray
+    val S = origin - center
+    val a = V dot V
+    val b = 2 * (V dot S)
+    //val originToCenter = origin - center
+    //val c = (originToCenter dot originToCenter) - Util.square(radius)
+    val c = (S dot S) - Util.square(radius)
     val n = Util.minRoot(a, b, c)
     if(!n.isEmpty){
       if(n.get > 0){

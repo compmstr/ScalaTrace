@@ -59,16 +59,16 @@ object ScalaTrace {
     val blueShader = LambertShader(Util.COLOR_BLUE)
     val whiteShader = LambertShader(Util.COLOR_WHITE)
     val greyShader = LambertShader(Util.COLOR_GREY)
-    val cam1 = new Camera(loc = V3(150, 150, 200), orientation = V3(0, 0, -1), imageSize = (300, 300), width = 100, fov = math.Pi / 4, samples = 1, jitter = 0, focalDist = 0)
-      //.lookAt(V3(-200, 150, -400))
+    val cam1 = new Camera(loc = V3(0, 150, 500), orientation = V3(0, 0, -1), imageSize = (100, 100), width = 1, fov = math.Pi / 4, samples = 1, jitter = 0, focalDist = 0)
+      //.lookAt(V3(0, 150, -500))
 		val scene1 = new Scene(cam = cam1,
 													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
 													 objects = List[WorldObject](
-                             new Sphere(V3(0, 150, -500), 100, List(redShader)),
-                             new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
+                             new Sphere(V3(0, 150, -500), 10, List(redShader)),
+                             new Sphere(V3(100, 150, -400), 10, List(greenShader, new ReflectiveShader(0.5, 4))),
                              //new Sphere(V3(100, 150, -400), 100, List(greenShader)),
-                             new Sphere(V3(-200, 150, -400), 100, List(greyShader, new ReflectiveShader(0.85, 4))),
-                             new Sphere(V3(150, 150, -300), 100, List(whiteShader))
+                             new Sphere(V3(-200, 150, -400), 10, List(greyShader, new ReflectiveShader(0.85, 4))),
+                             new Sphere(V3(150, 150, -300), 10, List(whiteShader))
 													 ),
 													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
 		val img = new ScalaTrace(scene1).rayTrace()
