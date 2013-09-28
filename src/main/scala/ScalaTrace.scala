@@ -61,7 +61,6 @@ object ScalaTrace {
     val whiteShader = LambertShader(Util.COLOR_WHITE)
     val greyShader = LambertShader(Util.COLOR_GREY)
     val cam1 = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300), width = 150, fov = math.Pi / 4, samples = 1, jitter = 0, focalDist = 0)
-    val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8)
 		val scene1 = new Scene(cam = cam1,
 													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
 													 objects = List[WorldObject](
@@ -72,10 +71,15 @@ object ScalaTrace {
                              new Sphere(V3(150, 150, -300), 100, List(whiteShader))
 													 ),
 													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
-		val img = new ScalaTrace(scene1).rayTrace()
-		viewImage(img, title = "Cam 1")
 
+		viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
+
+    val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8)
     viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
+
+    //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
+    //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
+    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
 	}
 	
 	def viewImage(img: BufferedImage, title: String = "Ray Tracer") = {
