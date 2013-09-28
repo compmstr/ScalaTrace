@@ -63,10 +63,12 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     println("Right vector: " + right)
     println("Up vector: " + up)
 
-    val left = loc - (right * halfWidth)
-    val top = loc + (up * halfHeight)
+    val left = loc - (right * (halfWidth * imageSize._1))
+    val top = loc + (up * (halfHeight * imageSize._2))
     println("Top: " + top)
     println("Left: " + left)
+    val planeStart = loc - (right * halfWidth) - (up * halfHeight)
+    println("planeStart: " + planeStart)
 
     //TODO: all until here appear to be correct, however the actual coords generated are off
     //TODO: Probably need to use matrix rotation to get this to work properly
@@ -75,10 +77,11 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
       val deltaX = x * xPixelStep
       val deltaY = y * yPixelStep
       //println("(x, y) -> " + (x, y) + " -- Deltas: " + (deltaX, deltaY))
-      //println("ray: " + ( origin - ((left + (right * deltaX)) + (top - (up * deltaY)))).norm)
-      ((x, y), (left + (right * deltaX)) + (top - (up * deltaY)))
-    }).map((coord: ((Int, Int), V3)) => (coord._1 , (orientation - coord._2).norm))
-    .foldLeft(Map[(Int, Int), V3]())(_ + _)
+      //println("Right vec: " + (right * deltaX) + " -- up vec: " + (up * deltaY))
+      //println("Final pos: " + (planeStart + (right * deltaX) + (up * deltaY)))
+      //println("===============================================")
+      ((x, y), ((planeStart + (right * deltaX) + (up * deltaY)) - origin).norm)
+    }).foldLeft(Map[(Int, Int), V3]())(_ + _)
 
     //return Map[(Double, Double), V3]()
   }
