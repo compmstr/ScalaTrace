@@ -1,3 +1,5 @@
+import scala.util.Random
+
 /**
  * Camera class for Raytracer
  *
@@ -10,7 +12,8 @@
  * @param jitter - amount of jitter to use
  * @param focalDist - how far away from the near plane of frustum to focus
  */
-class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val width: Double, val fov: Double, val samples: Int, val jitter: Double, val focalDist: Double) {
+class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val width: Double, val fov: Double,
+             val samples: Int, val jitter: Double, val focalDist: Option[Double] = None, val rand: Random = new Random(12345)) {
   val origin = calcOrigin()
   protected val aspectRatio = calcAspectRatio()
   protected val invAspectRatio = 1 / aspectRatio
@@ -20,7 +23,7 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
   println("aspect ratio: " + aspectRatio)
   println("pixel steps: " + (xPixelStep, yPixelStep))
   def copyWith(loc: V3 = loc, orientation: V3 = orientation, imageSize: (Int, Int) = imageSize, width: Double = width, fov: Double = fov,
-               samples: Int = samples, jitter: Double = jitter, focalDist: Double = focalDist): Camera = {
+               samples: Int = samples, jitter: Double = jitter, focalDist: Option[Double] = focalDist): Camera = {
     new Camera(loc, orientation, imageSize, width, fov, samples, jitter, focalDist)
   }
 
@@ -47,11 +50,29 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     (xStep, yStep)
   }
 
+  def applyJitter(vec: V3): V3 = {
+    val halfJitter = jitter * 0.5;
+    V3(vec.x + (jitter * rand.nextDouble()) - halfJitter,
+      vec.y + (jitter * rand.nextDouble()) - halfJitter,
+      vec.z + (jitter * rand.nextDouble()) - halfJitter)
+  }
+
+  def genRaySamples(base: (V3, V3)): List[(V3, V3)] = {
+    val (baseOrigin, baseRay) = base
+    focalDist match {
+      case None =>
+        (for(i <- 1 to samples) yield (applyJitter(baseOrigin), baseRay)).toList
+      case Some(dist: Double) =>
+        //TODO: update this to do actual focal blur
+        (for(i <- 1 to samples) yield (applyJitter(baseOrigin), baseRay)).toList
+    }
+  }
+
   /**
    * Returns a map of screen coordinates to the ray for that coordinate
    * @return
    */
-  def getRays(): Map[(Int, Int), V3] = {
+  def getRays(): Map[(Int, Int), List[(V3, V3)]] = {
     val halfWidth = width / 2;
     val height = width * invAspectRatio
     val halfHeight = halfWidth * invAspectRatio;
@@ -80,8 +101,9 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
       //println("Right vec: " + (right * deltaX) + " -- up vec: " + (up * deltaY))
       //println("Final pos: " + (planeStart + (right * deltaX) + (up * deltaY)))
       //println("===============================================")
-      ((x, y), ((planeStart + (right * deltaX) + (up * deltaY)) - origin).norm)
-    }).foldLeft(Map[(Int, Int), V3]())(_ + _)
+      ((x, y), genRaySamples((origin, ((planeStart + (right * deltaX) + (up * deltaY)) - origin).norm)))
+      //((x, y), List[(V3, V3)]((origin, ((planeStart + (right * deltaX) + (up * deltaY)) - origin).norm)))
+    }).foldLeft(Map[(Int, Int), List[(V3, V3)]]())(_ + _)
 
     //return Map[(Double, Double), V3]()
   }

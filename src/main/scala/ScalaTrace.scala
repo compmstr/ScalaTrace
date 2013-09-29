@@ -33,7 +33,12 @@ class ScalaTrace(scene: Scene){
     //group the coords into chunks of <perChunk>, turn the iterator into a list, into a parallel collection
     val colors = coordsAndRays.grouped(perChunk).toList.par
       //and map mapping the sendRay fn on them
-      .map(_.map((locRay: ((Int, Int), V3)) => (locRay._1, ScalaTrace.sendRay(scene, scene.cam.origin, locRay._2))))
+      .map(_.map((locRay: ((Int, Int), List[(V3, V3)])) => {
+      val samples = locRay._2.map((curRay: (V3, V3)) => ScalaTrace.sendRay(scene, curRay._1, curRay._2))
+      val numSamples = locRay._2.size
+      (locRay._1, samples.foldLeft(V3(0, 0, 0))(_ + _) * (1.0 / numSamples))
+      //(locRay._1, ScalaTrace.sendRay(scene, scene.cam.origin, locRay._2))
+    }))
       //then collect them using the foldLeft(List[...]())(_++_)
       .foldLeft(List[((Int, Int), V3)]())(_++_)
 
@@ -60,7 +65,8 @@ object ScalaTrace {
     val blueShader = LambertShader(Util.COLOR_BLUE)
     val whiteShader = LambertShader(Util.COLOR_WHITE)
     val greyShader = LambertShader(Util.COLOR_GREY)
-    val cam1 = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300), width = 150, fov = math.Pi / 4, samples = 1, jitter = 0, focalDist = 0)
+    val cam1 = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300),
+          width = 150, fov = math.Pi / 4, samples = 1, jitter = 0)
 		val scene1 = new Scene(cam = cam1,
 													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
 													 objects = List[WorldObject](
@@ -74,8 +80,13 @@ object ScalaTrace {
 
 		viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
 
-    val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8)
+    //Do antialiasing
+    val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 4, jitter = 1.0)
     viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
+    //Do Focal Blur
+    val cam3 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 6, jitter = 5.0, focalDist = Some(900))
+    //TODO: get focal blur working
+    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
