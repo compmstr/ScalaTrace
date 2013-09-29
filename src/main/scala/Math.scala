@@ -25,4 +25,14 @@ object V3{
 	def fromList(lst: List[Double]): V3 = {
 		new V3(lst(0), lst(1), lst(2))
 	}
+
+  /**
+   * Returns the 'look at' vector from origin to target
+   * @param target
+   * @param origin
+   * @return
+   */
+  def lookAt(target: V3, origin: V3): V3 = {
+    (target - origin).norm
+  }
 }

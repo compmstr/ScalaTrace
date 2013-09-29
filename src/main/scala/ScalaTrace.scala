@@ -78,15 +78,15 @@ object ScalaTrace {
 													 ),
 													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
 
-		viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
+		//viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
 
     //Do antialiasing
     val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 4, jitter = 1.0)
-    viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
+    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
+
     //Do Focal Blur
-    val cam3 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 6, jitter = 5.0, focalDist = Some(900))
-    //TODO: get focal blur working
-    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
+    val cam3 = cam1.lookAt(V3(0, 150, -400)).copyWith(width = 200, fov = math.Pi / 8, samples = 12, jitter = 50.0, focalDist = Some(900))
+    viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)

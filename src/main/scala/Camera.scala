@@ -15,6 +15,7 @@ import scala.util.Random
 class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val width: Double, val fov: Double,
              val samples: Int, val jitter: Double, val focalDist: Option[Double] = None, val rand: Random = new Random(12345)) {
   val origin = calcOrigin()
+  val originDist = (loc - origin).mag
   protected val aspectRatio = calcAspectRatio()
   protected val invAspectRatio = 1 / aspectRatio
   val (xPixelStep, yPixelStep) = calcPixelSteps()
@@ -33,8 +34,7 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
    * @return
    */
   def lookAt(target: V3): Camera = {
-    val newOrientation: V3 = (target - loc).norm
-    copyWith(orientation = newOrientation)
+    copyWith(orientation = V3.lookAt(target, loc))
   }
 
   protected def calcAspectRatio(): Double = {
@@ -50,11 +50,11 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
     (xStep, yStep)
   }
 
-  def applyJitter(vec: V3): V3 = {
-    val halfJitter = jitter * 0.5;
-    V3(vec.x + (jitter * rand.nextDouble()) - halfJitter,
-      vec.y + (jitter * rand.nextDouble()) - halfJitter,
-      vec.z + (jitter * rand.nextDouble()) - halfJitter)
+  def applyJitter(vec: V3, amount: Double = jitter): V3 = {
+    val halfJitter = amount * 0.5;
+    V3(vec.x + (amount * rand.nextDouble()) - halfJitter,
+      vec.y + (amount * rand.nextDouble()) - halfJitter,
+      vec.z + (amount * rand.nextDouble()) - halfJitter)
   }
 
   def genRaySamples(base: (V3, V3)): List[(V3, V3)] = {
@@ -63,8 +63,13 @@ class Camera(val loc: V3, val orientation: V3, val imageSize: (Int, Int), val wi
       case None =>
         (for(i <- 1 to samples) yield (applyJitter(baseOrigin), baseRay)).toList
       case Some(dist: Double) =>
-        //TODO: update this to do actual focal blur
-        (for(i <- 1 to samples) yield (applyJitter(baseOrigin), baseRay)).toList
+        val fPoint = baseOrigin + ((baseRay.norm) * (dist + originDist))
+        (for(i <- 1 to samples) yield {
+          val newOrigin = applyJitter(baseOrigin)
+          val newRay = V3.lookAt(fPoint, newOrigin)
+          //the jitter is so we'll antialias the focused point
+          (applyJitter(newOrigin, 1), newRay)
+        }).toList
     }
   }
 
