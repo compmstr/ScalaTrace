@@ -2,7 +2,7 @@
 import javax.swing.{JProgressBar, JFrame, JPanel}
 import java.awt.image.BufferedImage
 import java.awt.{Color, Graphics}
-import scala.actors.Actor
+import scala.actors.{DaemonActor, Actor}
 
 object TracerGUI {
 
@@ -21,10 +21,17 @@ object TracerGUI {
   }
 }
 
-class ProgressNotifier(val total: Int, val initialAmt: Int = 0) extends Actor {
+class ProgressNotifier(val total: Int, val initialAmt: Int = 0) extends DaemonActor {
   var amtDone = initialAmt
   protected def onUpdate(){
   }
+
+  def percentDone(): Double = amtDone.toDouble / total
+
+  def reset(){
+    amtDone = 0
+  }
+
   def act() {
     while(true){
       receive {

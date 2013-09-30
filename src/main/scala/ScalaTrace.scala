@@ -19,6 +19,8 @@ case class HitInfo(scene: Scene, intersect: V3, obj: WorldObject, ray: V3)
 
 class ScalaTrace(val scene: Scene, val progress: Option[ProgressNotifier] = None){
 
+  if(!progress.isEmpty) progress.get.start
+
   def v3ToColor(color: V3): Color = {
     val clamped = Util.colorClamp(color)
     new Color(clamped.x.asInstanceOf[Float],
@@ -31,6 +33,7 @@ class ScalaTrace(val scene: Scene, val progress: Option[ProgressNotifier] = None
 		val img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
     val coordsAndRays = scene.cam.getRays()
     val perChunk = coordsAndRays.size / Runtime.getRuntime.availableProcessors
+    if(progress.isDefined) progress.get.reset
     //group the coords into chunks of <perChunk>, turn the iterator into a list, into a parallel collection
     val colors = coordsAndRays.grouped(perChunk).toList.par
       //and map mapping the sendRay fn on them
@@ -87,9 +90,23 @@ object ScalaTrace {
     val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 4, jitter = 1.0)
     //TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
 
+    val notifier = new ProgressNotifier(300 * 300){
+      var lastPercentEchoed = -1.0
+      override protected def onUpdate() {
+        super.onUpdate()
+        if((lastPercentEchoed + 0.05) < percentDone()){
+          println("%.2f%%" format(percentDone * 100))
+          lastPercentEchoed = percentDone
+        }
+      }
+      override def reset() {
+        super.reset()
+        lastPercentEchoed = -1.0
+      }
+    }
     //Do Focal Blur
     val cam3 = cam1.lookAt(V3(0, 150, -400)).copyWith(width = 200, fov = math.Pi / 8, samples = 12, jitter = 50.0, focalDist = Some(900))
-    TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
+    TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3), progress = Some(notifier)).rayTrace(), title = "Cam 3")
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
