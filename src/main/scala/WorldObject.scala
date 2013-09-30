@@ -40,6 +40,6 @@ class Sphere(val center: V3, val radius: Double, override val shaders: List[Shad
 
     val frontAngle = math.acos(vecFront dot locNorm)
     val upAngle = math.acos(vecUp dot locNorm)
-    (frontAngle % (math.Pi * 2), upAngle % (math.Pi * 2))
+    ((frontAngle % Util.TWO_PI) / Util.TWO_PI, (upAngle % Util.TWO_PI) / Util.TWO_PI)
   }
 }

@@ -6,6 +6,15 @@ abstract class Shader(){
     return !(firstHit.isEmpty)
   }
 
+  protected def lambert(scene: Scene, hit: HitInfo): Double = {
+    val HitInfo(_, intersect, obj, _) = hit
+    val normal = obj.normal(intersect)
+    (for(light <- shadowFilter(hit, scene.lights))yield {
+      val toLight = intersect - light.loc
+      ((toLight.norm dot normal) / Util.square(0.002 * toLight.mag)) * light.power
+    }).foldRight(0.0)(_+_)
+  }
+
   /**
    * Filters a list of lights for a particular hit to weed out the ones we're in the shadow of
    *   If no lights are visible, returns a 0 power light, in order allow ambient to go through
@@ -18,15 +27,25 @@ abstract class Shader(){
   }
 }
 
+case class CheckeredShader(val color1: V3 = V3(1, 1, 1), val color2: V3 = V3(1, 0, 0), val count: Int = 10) extends Shader{
+  def getColor(scene: Scene, hit: HitInfo): V3 = {
+    val obj = hit.obj
+    val pos = hit.intersect
+    //TODO: not sure if shaderLocAt is wrong, or this is
+    val shaderLoc = obj.shaderLocAt(pos)
+    val xEven = (shaderLoc._1 * count).toInt % 2 == 0
+    val yEven = (shaderLoc._2 * count).toInt % 2 == 0
+    val lighting = lambert(scene, hit)
+    //xor
+    if(xEven ^ yEven){
+      color1 * lighting
+    }else{
+      color2 * lighting
+    }
+  }
+}
+
 case class LambertShader(color: V3) extends Shader{
-	private def lambert(scene: Scene, hit: HitInfo): Double = {
-    val HitInfo(_, intersect, obj, _) = hit
-		val normal = obj.normal(intersect)
-    (for(light <- shadowFilter(hit, scene.lights))yield {
-      val toLight = intersect - light.loc
-      ((toLight.norm dot normal) / Util.square(0.002 * toLight.mag)) * light.power
-    }).foldRight(0.0)(_+_)
-	}
   override def getColor(scene: Scene, hit: HitInfo): V3 = {
     color * lambert(scene, hit)
   }

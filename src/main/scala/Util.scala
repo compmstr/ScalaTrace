@@ -27,4 +27,8 @@ object Util{
   val COLOR_GREEN = V3(0.0, 1.0, 0.0)
   val COLOR_BLUE = V3(0.0, 0.0, 1.0)
   val COLOR_GREY = V3(0.5, 0.5, 0.5)
+
+  val TWO_PI = math.Pi * 2
+  val HALF_PI = math.Pi / 2
+  val QUART_PI = math.Pi / 4
 }

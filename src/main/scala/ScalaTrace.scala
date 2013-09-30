@@ -65,24 +65,32 @@ class ScalaTrace(val scene: Scene, val progress: Option[ProgressNotifier] = None
 }
 
 object ScalaTrace {
+  val greenShader = LambertShader(Util.COLOR_GREEN)
+  val redShader = LambertShader(Util.COLOR_RED)
+  val blueShader = LambertShader(Util.COLOR_BLUE)
+  val whiteShader = LambertShader(Util.COLOR_WHITE)
+  val greyShader = LambertShader(Util.COLOR_GREY)
+
+  def getTestScene: Scene = {
+    val cam = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300),
+      width = 150, fov = math.Pi / 4, samples = 1, jitter = 0)
+    val scene = new Scene(cam = cam,
+      lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
+      objects = List[WorldObject](
+        new Sphere(V3(0, 150, -500), 100, List(redShader)),
+        new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
+        //new Sphere(V3(100, 150, -400), 100, List(greenShader)),
+        new Sphere(V3(-200, 150, -400), 100, List(greyShader, new ReflectiveShader(0.85, 4))),
+        new Sphere(V3(150, 150, -300), 100, List(new CheckeredShader()))
+      ),
+      sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
+
+    scene
+  }
+
 	def main(args: Array[String]):Unit = {
-    val greenShader = LambertShader(Util.COLOR_GREEN)
-    val redShader = LambertShader(Util.COLOR_RED)
-    val blueShader = LambertShader(Util.COLOR_BLUE)
-    val whiteShader = LambertShader(Util.COLOR_WHITE)
-    val greyShader = LambertShader(Util.COLOR_GREY)
-    val cam1 = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300),
-          width = 150, fov = math.Pi / 4, samples = 1, jitter = 0)
-		val scene1 = new Scene(cam = cam1,
-													 lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
-													 objects = List[WorldObject](
-                             new Sphere(V3(0, 150, -500), 100, List(redShader)),
-                             new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
-                             //new Sphere(V3(100, 150, -400), 100, List(greenShader)),
-                             new Sphere(V3(-200, 150, -400), 100, List(greyShader, new ReflectiveShader(0.85, 4))),
-                             new Sphere(V3(150, 150, -300), 100, List(whiteShader))
-													 ),
-													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
+    val scene1 = getTestScene
+    val cam1 = scene1.cam
 
 		//TracerGUI.viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
 
@@ -103,10 +111,14 @@ object ScalaTrace {
         super.reset()
         lastPercentEchoed = -1.0
       }
+      override def onDone(){
+        println("Done!")
+      }
     }
     //Do Focal Blur
     val cam3 = cam1.lookAt(V3(0, 150, -400)).copyWith(width = 200, fov = math.Pi / 8, samples = 12, jitter = 50.0, focalDist = Some(900))
-    TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3), progress = Some(notifier)).rayTrace(), title = "Cam 3")
+    //TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3), progress = Some(notifier)).rayTrace(), title = "Cam 3")
+    val gui = new TracerGUI(scene1.copyWith(cam = cam3))
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
