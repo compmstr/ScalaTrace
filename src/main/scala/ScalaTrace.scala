@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage
 import java.awt.{Color, Graphics}
 import javax.swing.{JFrame, JPanel}
+import scala.actors.Actor
 
 class Light(val loc: V3, val power: Double)
 class Scene(val cam: Camera, val lights: List[Light], val objects: List[WorldObject],
@@ -16,7 +17,7 @@ class Scene(val cam: Camera, val lights: List[Light], val objects: List[WorldObj
 
 case class HitInfo(scene: Scene, intersect: V3, obj: WorldObject, ray: V3)
 
-class ScalaTrace(scene: Scene){
+class ScalaTrace(val scene: Scene, val progress: Option[ProgressNotifier] = None){
 
   def v3ToColor(color: V3): Color = {
     val clamped = Util.colorClamp(color)
@@ -36,6 +37,8 @@ class ScalaTrace(scene: Scene){
       .map(_.map((locRay: ((Int, Int), List[(V3, V3)])) => {
       val samples = locRay._2.map((curRay: (V3, V3)) => ScalaTrace.sendRay(scene, curRay._1, curRay._2))
       val numSamples = locRay._2.size
+      //Update the progress bar if needed
+      if(!progress.isEmpty) progress.get ! 1
       (locRay._1, samples.foldLeft(V3(0, 0, 0))(_ + _) * (1.0 / numSamples))
       //(locRay._1, ScalaTrace.sendRay(scene, scene.cam.origin, locRay._2))
     }))
@@ -78,35 +81,21 @@ object ScalaTrace {
 													 ),
 													 sky = V3(0.0, 0.0, 0.5), ambient = V3(0.1, 0.1, 0.1))
 
-		//viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
+		//TracerGUI.viewImage(new ScalaTrace(scene1).rayTrace(), title = "Cam 1")
 
     //Do antialiasing
     val cam2 = cam1.lookAt(V3(-200, 150, -400)).copyWith(fov = math.Pi / 8, samples = 4, jitter = 1.0)
-    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
+    //TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam2)).rayTrace(), title = "Cam 2")
 
     //Do Focal Blur
     val cam3 = cam1.lookAt(V3(0, 150, -400)).copyWith(width = 200, fov = math.Pi / 8, samples = 12, jitter = 50.0, focalDist = Some(900))
-    viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
+    TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
-    //viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
+    //TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3)).rayTrace(), title = "Cam 3")
 	}
 	
-	def viewImage(img: BufferedImage, title: String = "Ray Tracer") = {
-		val frame = new JFrame(title)
-		val panel = new JPanel{
-			override def paintComponent(g: Graphics) = {
-				g.drawImage(img, 0, 0, this)
-			}
-		}
-		frame.add(panel)
-		frame.setSize(img.getWidth, img.getHeight)
-		frame.setResizable(false)
-		frame.setVisible(true)
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-	}
-
   def firstHit(scene: Scene, origin: V3, ray: V3): Option[HitInfo] = {
     def hitsFolder(acc: List[HitInfo], obj: WorldObject)={
       val intersect = obj.intersect(origin, ray)
