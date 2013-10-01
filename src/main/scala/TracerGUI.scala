@@ -44,6 +44,7 @@ class TracerGUI(scene: Scene, title: String = "Scala Tracer"){
   c.gridy = 0
   frame.add(panel, c)
 
+  c.insets = new Insets(2, 2, 2, 2)
   c.gridy = 1
   c.gridwidth = 2
   frame.add(progressBar, c)

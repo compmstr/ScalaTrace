@@ -1,9 +1,10 @@
 abstract class Shader(){
   def getColor(scene: Scene, hit: HitInfo): V3
+  //TODO - this seems to create phantom shadows in the direction of the light, in some cases
   protected def isInShadowForLight(hit: HitInfo, light: Light): Boolean = {
-    val toLight = hit.intersect - light.loc
-    val firstHit = ScalaTrace.firstHit(hit.scene, hit.intersect + toLight * 0.001, toLight)
-    return !(firstHit.isEmpty)
+    val toLight = (hit.intersect - light.loc).norm
+    val firstHit = ScalaTrace.firstHit(hit.scene, hit.intersect + (toLight * 0.001), toLight)
+    return firstHit.isDefined
   }
 
   protected def lambert(scene: Scene, hit: HitInfo): Double = {
@@ -11,7 +12,7 @@ abstract class Shader(){
     val normal = obj.normal(intersect)
     (for(light <- shadowFilter(hit, scene.lights))yield {
       val toLight = intersect - light.loc
-      ((toLight.norm dot normal) / Util.square(0.002 * toLight.mag)) * light.power
+      Util.doubleToColor(((toLight.norm dot normal) / Util.square(0.002 * toLight.mag)) * light.power)
     }).foldRight(0.0)(_+_)
   }
 
@@ -29,18 +30,14 @@ abstract class Shader(){
 
 case class CheckeredShader(val color1: V3 = V3(1, 1, 1), val color2: V3 = V3(1, 0, 0), val count: Int = 10) extends Shader{
   def getColor(scene: Scene, hit: HitInfo): V3 = {
-    val obj = hit.obj
-    val pos = hit.intersect
-    //TODO: not sure if shaderLocAt is wrong, or this is
-    val shaderLoc = obj.shaderLocAt(pos)
+    val shaderLoc = hit.obj.shaderLocAt(hit.intersect)
     val xEven = (shaderLoc._1 * count).toInt % 2 == 0
     val yEven = (shaderLoc._2 * count).toInt % 2 == 0
-    val lighting = lambert(scene, hit)
     //xor
     if(xEven ^ yEven){
-      color1 * lighting
+      color1 * lambert(scene, hit)
     }else{
-      color2 * lighting
+      color2 * lambert(scene, hit)
     }
   }
 }

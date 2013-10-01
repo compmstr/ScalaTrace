@@ -1,6 +1,6 @@
 object Util{
 	def square(x: Double) = x * x
-	def doubleToColor(f: Double): Float = math.min(1, math.max(0, f)).asInstanceOf[Float]
+	def doubleToColor(f: Double): Double = math.min(1, math.max(0, f))
   def colorClamp(color: V3): V3 = {
     V3(doubleToColor(color.x),
       doubleToColor(color.y),

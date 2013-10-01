@@ -23,9 +23,9 @@ class ScalaTrace(val scene: Scene, val progress: Option[ProgressNotifier] = None
 
   def v3ToColor(color: V3): Color = {
     val clamped = Util.colorClamp(color)
-    new Color(clamped.x.asInstanceOf[Float],
-      clamped.y.asInstanceOf[Float],
-      clamped.z.asInstanceOf[Float])
+    new Color(clamped.x.toFloat,
+      clamped.y.toFloat,
+      clamped.z.toFloat)
   }
 	def rayTrace(): BufferedImage = {
     val (w, h) = scene.cam.imageSize
@@ -75,7 +75,11 @@ object ScalaTrace {
     val cam = new Camera(loc = V3(150, 150, 500), orientation = V3(0, 0, -1), imageSize = (300, 300),
       width = 150, fov = math.Pi / 4, samples = 1, jitter = 0)
     val scene = new Scene(cam = cam,
-      lights = List[Light](new Light(V3(-600, 150, -400), 0.8)),
+      lights = List[Light](
+        new Light(V3(-600, 150, -400), 0.8),
+        new Light(V3(600, 150, -150), 0.5),
+        new Light(V3(600, 150, 0), 0.25)
+      ),
       objects = List[WorldObject](
         new Sphere(V3(0, 150, -500), 100, List(redShader)),
         new Sphere(V3(100, 150, -400), 100, List(greenShader, new ReflectiveShader(0.5, 4))),
@@ -118,7 +122,9 @@ object ScalaTrace {
     //Do Focal Blur
     val cam3 = cam1.lookAt(V3(0, 150, -400)).copyWith(width = 200, fov = math.Pi / 8, samples = 12, jitter = 50.0, focalDist = Some(900))
     //TracerGUI.viewImage(new ScalaTrace(scene1.copyWith(cam = cam3), progress = Some(notifier)).rayTrace(), title = "Cam 3")
-    val gui = new TracerGUI(scene1.copyWith(cam = cam3))
+    //val gui = new TracerGUI(scene1.copyWith(cam = cam3))
+    //val gui = new TracerGUI(scene1.copyWith(cam = cam2))
+    val gui = new TracerGUI(scene1.copyWith(cam = scene1.cam.lookAt(V3(0,150,-500))))
 
     //Full 180 degrees (Pi Radians) makes a flat plane out of the camera, and so doesn't render anything
     //val cam3 = cam1.copyWith(loc = V3(150, 150, 0), fov = math.Pi - 0.1)
